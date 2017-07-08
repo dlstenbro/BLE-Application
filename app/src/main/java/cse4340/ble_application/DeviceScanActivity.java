@@ -49,17 +49,13 @@ public class DeviceScanActivity extends Activity {
     private Handler mHandler;
 
     ListView listView;
-    ListView listView_paired;
 
-    private BluetoothAdapter mBluetoothAdapter;
+    BluetoothAdapter mBluetoothAdapter;
     ArrayAdapter<BluetoothDevice> mBTDeviceListAdapter;
 
-    private ArrayList<BluetoothDevice> mBTDevices;
+    ArrayList<BluetoothDevice> mBTDevices;
 
     Set<BluetoothDevice> pairedDevices;
-    ArrayAdapter paired_BTDeviceListAdapter;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,41 +65,21 @@ public class DeviceScanActivity extends Activity {
         Intent intent = getIntent();
 
         listView = (ListView) findViewById(R.id.list);
-        listView_paired = (ListView) findViewById(R.id.listPairs);
-
-
-
-        // Define a new Adapter
-        // First parameter - Context
-        // Second parameter - Layout for the row
-        // Third parameter - ID of the TextView to which the data is written
-        // Forth - the Array of data
-
-        //mLeDeviceListAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, android.R.id.text1, values);
-
-
 
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(mReceiver, filter);
 
-        Intent discoverableIntent =
-                new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, DISCOVERABLE_DURATION);
         startActivity(discoverableIntent);
 
-
         startBTService();
-        findPairedDevices();
 
         mBTDevices = new ArrayList<BluetoothDevice>();
 
         // Assign adapter to ListView
         mBTDeviceListAdapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,android.R.id.text1,mBTDevices);
-
-
         listView.setAdapter(mBTDeviceListAdapter);
-
-
         mBluetoothAdapter.startDiscovery();
 
         // ListView Item Click Listener
@@ -115,9 +91,12 @@ public class DeviceScanActivity extends Activity {
                 mBluetoothAdapter.cancelDiscovery();
                 BluetoothDevice bluetoothDevice = mBTDeviceListAdapter.getItem(position);
                 Log.d("Listview", "You pressed MAC: " + bluetoothDevice.getName());
+
                 pairDevice(bluetoothDevice);
+
                 IntentFilter intent = new IntentFilter(bluetoothDevice.ACTION_BOND_STATE_CHANGED);
                 registerReceiver(mReceiver, intent);
+                Toast.makeText(DeviceScanActivity.this, "Initiating connecting with "+ "Name: " + bluetoothDevice.getName(), Toast.LENGTH_SHORT).show();
 
             }
 
@@ -129,16 +108,6 @@ public class DeviceScanActivity extends Activity {
         try {
             Method method = device.getClass().getMethod("createBond", (Class[]) null);
             method.invoke(device, (Object[]) null);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void unpairDevice(BluetoothDevice device) {
-        try {
-            Method method = device.getClass().getMethod("removeBond", (Class[]) null);
-            method.invoke(device, (Object[]) null);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -165,10 +134,10 @@ public class DeviceScanActivity extends Activity {
                 final int prevState    = intent.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, BluetoothDevice.ERROR);
 
                 if (state == BluetoothDevice.BOND_BONDED && prevState == BluetoothDevice.BOND_BONDING) {
-                    Toast.makeText(DeviceScanActivity.this, "Paired!", Toast.LENGTH_SHORT);
+                    Toast.makeText(DeviceScanActivity.this, "Paired!", Toast.LENGTH_LONG);
 
                 } else if (state == BluetoothDevice.BOND_NONE && prevState == BluetoothDevice.BOND_BONDED){
-                    Toast.makeText(DeviceScanActivity.this, "Unpaired!", Toast.LENGTH_SHORT);
+                    Toast.makeText(DeviceScanActivity.this, "Unpaired!", Toast.LENGTH_LONG);
                 }
 
             }
@@ -182,19 +151,6 @@ public class DeviceScanActivity extends Activity {
         // Don't forget to unregister the ACTION_FOUND receiver.
         unregisterReceiver(mReceiver);
 
-    }
-
-    private void findPairedDevices() {
-
-        pairedDevices = mBluetoothAdapter.getBondedDevices();
-
-        if (pairedDevices.size() > 0) {
-            // There are paired devices. Get the name and address of each paired device.
-            for (BluetoothDevice device : pairedDevices) {
-                String deviceName = device.getName();
-                String deviceHardwareAddress = device.getAddress(); // MAC address
-            }
-        }
     }
 
     private void startBTService() {
