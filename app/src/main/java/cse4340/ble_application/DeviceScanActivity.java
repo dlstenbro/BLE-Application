@@ -96,7 +96,7 @@ public class DeviceScanActivity extends Activity {
 
                 IntentFilter intent = new IntentFilter(bluetoothDevice.ACTION_BOND_STATE_CHANGED);
                 registerReceiver(mReceiver, intent);
-                Toast.makeText(DeviceScanActivity.this, "Initiating connecting with "+ "Name: " + bluetoothDevice.getName(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(DeviceScanActivity.this, "Initiating connection with "+ "Name: " + bluetoothDevice.getName(), Toast.LENGTH_SHORT).show();
 
             }
 
