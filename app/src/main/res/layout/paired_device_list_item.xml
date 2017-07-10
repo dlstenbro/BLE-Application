@@ -32,7 +32,7 @@
         />
 
     <Button
-        android:text="Send String"
+        android:text="Send and Receive"
         android:layout_height="wrap_content"
         android:id="@+id/send_button"
         android:layout_width="wrap_content"
@@ -41,6 +41,5 @@
         android:layout_marginEnd="14dp"
 
         />
-
 
 </RelativeLayout>

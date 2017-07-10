@@ -1,5 +1,20 @@
 package cse4340.ble_application;
 
+
+/*
+      Student Name: Daniel Stenbro
+      UTA ID: 1000739663
+
+
+      Some code is taken from the following sources
+        - https://developer.android.com/guide/topics/connectivity/bluetooth.html
+        - https://stackoverflow.com/questions/22899475/android-sample-bluetooth-code-to-send-a-simple-string-via-bluetooth
+        - https://stackoverflow.com/questions/32708374/bluetooth-le-scanfilters-dont-work-on-android-m
+
+ */
+
+
+
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -19,6 +34,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -26,9 +42,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static android.content.ContentValues.TAG;
+/*
 
+        Main Activity that holds all starting buttons
 
+ */
 public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
@@ -39,17 +57,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        // set the two buttons that will used for user action
         final Button search_devices = (Button) findViewById(R.id.button_search);
         final Button paired_button = (Button) findViewById(R.id.paired_button);
 
+        TextView receivedText = (TextView) findViewById(R.id.receivedText);
 
+        // check if marshmellow or above. Marshmellow requires location prompt on Activity.
         if (Build.VERSION.SDK_INT >= 23) {
             // Marshmallow+ Permission APIs
             checkMarshMallow();
 
         }
 
+        // The follow are listeners for the resepctive buttons on the Activity screen.
         search_devices.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 

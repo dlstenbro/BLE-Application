@@ -37,4 +37,6 @@
         android:layout_below="@+id/button_search"
         android:layout_alignStart="@+id/button_search"
         android:layout_alignEnd="@+id/button_search" />
+
+
 </RelativeLayout>

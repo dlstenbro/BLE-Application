@@ -36,6 +36,10 @@ import java.util.Set;
 
 import static android.content.ContentValues.TAG;
 
+
+/*
+       When the user presses "Search for bluetooth Devices, this activity will be used to search for nearby compatible devices."
+ */
 public class DeviceScanActivity extends Activity {
 
     private static final int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 1;
@@ -64,15 +68,18 @@ public class DeviceScanActivity extends Activity {
         setContentView(R.layout.activity_device_scan);
         Intent intent = getIntent();
 
+        // listview that will hold all of our found devices.
         listView = (ListView) findViewById(R.id.list);
 
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(mReceiver, filter);
 
+        // prompt for bluetooth permissions
         Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, DISCOVERABLE_DURATION);
         startActivity(discoverableIntent);
 
+        // start bluetooth on the device.
         startBTService();
 
         mBTDevices = new ArrayList<BluetoothDevice>();
@@ -96,7 +103,7 @@ public class DeviceScanActivity extends Activity {
 
                 IntentFilter intent = new IntentFilter(bluetoothDevice.ACTION_BOND_STATE_CHANGED);
                 registerReceiver(mReceiver, intent);
-                Toast.makeText(DeviceScanActivity.this, "Initiating connection with "+ "Name: " + bluetoothDevice.getName(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(DeviceScanActivity.this, "Initiating pair with "+ "Name: " + bluetoothDevice.getName(), Toast.LENGTH_SHORT).show();
 
             }
 
@@ -104,6 +111,7 @@ public class DeviceScanActivity extends Activity {
 
     }
 
+    // When a user clicks on a device to pair, then create the bond to establish pair
     private void pairDevice(BluetoothDevice device) {
         try {
             Method method = device.getClass().getMethod("createBond", (Class[]) null);
@@ -113,6 +121,10 @@ public class DeviceScanActivity extends Activity {
         }
     }
 
+    // when an action is done through bluetooth, each action will go to "BroadcastReceiver" method.
+    // Once the method receives a new state, then do an action on that state
+    // BOND_BONDING = new bond, create a pair
+    // BOND_NONE = pair needs to be removed, disassociate pair
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
