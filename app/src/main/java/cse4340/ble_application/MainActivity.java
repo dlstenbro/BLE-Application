@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
         TextView receivedText = (TextView) findViewById(R.id.receivedText);
 
-        // check if marshmellow or above. Marshmellow requires location prompt on Activity.
+        // check if Marshmallow or above. Marshmallow requires location prompt on Activity.
         if (Build.VERSION.SDK_INT >= 23) {
             // Marshmallow+ Permission APIs
             checkMarshMallow();
