@@ -32,7 +32,7 @@
         />
 
     <Button
-        android:text="Send and Receive"
+        android:text="Send/Receive IP"
         android:layout_height="wrap_content"
         android:id="@+id/send_button"
         android:layout_width="wrap_content"
@@ -41,5 +41,14 @@
         android:layout_marginEnd="14dp"
 
         />
+
+    <Button
+        android:text="File Browser"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/fileBrowser"
+        android:layout_alignBaseline="@+id/unpair_button"
+        android:layout_alignBottom="@+id/unpair_button"
+        android:layout_toEndOf="@+id/unpair_button" />
 
 </RelativeLayout>
