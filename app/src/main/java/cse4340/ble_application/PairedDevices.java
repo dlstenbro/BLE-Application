@@ -7,12 +7,14 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.provider.SyncStateContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,7 +33,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.NetworkInterface;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -53,6 +57,7 @@ public class PairedDevices extends DeviceScanActivity {
     ServerThread acceptThread;
     String receivedMessage;
     TextView receivedText;
+    private boolean sendReceiveIP = false;
 
     /*
             When the user goes to the "Paired Devices" Screen, get a list of devices and show two buttons, send and receive button and unpair
@@ -99,6 +104,7 @@ public class PairedDevices extends DeviceScanActivity {
 
                 // When the user hits the send and receive button, then listen for incoming strings.
                 if (button_name.getText().toString().contains("Send and Receive")) {
+                    sendReceiveIP = true;
 
                     final ClientThread newConnect = new ClientThread(device);
 
@@ -120,6 +126,19 @@ public class PairedDevices extends DeviceScanActivity {
                         receivedText.invalidate();
                     }
 
+                }
+
+                if((button_name.getText().toString().contains("File Browser")) && sendReceiveIP == true){
+                    // do something
+                    // go to next activity
+                    // start wifi
+                    // get file information from other device by using a list view
+                    // create a on press listener for list view
+                    // when the user selects the file, then download the file to root directory of device.
+
+                }
+                else{
+                    Toast.makeText(PairedDevices.this, "Send/Receive IP address first!", Toast.LENGTH_SHORT).show();
                 }
 
             }
@@ -195,9 +214,11 @@ public class PairedDevices extends DeviceScanActivity {
 
             holder.send_button = (Button)row.findViewById(R.id.send_button);
             holder.unpair_button = (Button)row.findViewById(R.id.unpair_button);
+            holder.file_browser = (Button)row.findViewById(R.id.fileBrowser);
 
             holder.device_name = (TextView)row.findViewById(R.id.device_name);
             holder.device_mac = (TextView)row.findViewById(R.id.device_mac);
+
 
             final BluetoothDevice temp = getItem(position);
 
@@ -220,6 +241,16 @@ public class PairedDevices extends DeviceScanActivity {
                 }
             });
 
+            holder.file_browser.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(customListener != null){
+                        customListener.onButtonClickListener(position, temp, (Button) finalRow.findViewById(R.id.fileBrowser));
+                    }
+
+                }
+            });
+
             row.setTag(holder);
 
             setupItem(holder);
@@ -238,6 +269,7 @@ public class PairedDevices extends DeviceScanActivity {
             TextView device_mac;
             Button send_button;
             Button unpair_button;
+            Button file_browser;
         }
     }
 
@@ -394,12 +426,15 @@ public class PairedDevices extends DeviceScanActivity {
     private void writeThread(BluetoothSocket socket) {
 
         final IOThread writeioThread = new IOThread(socket);
+        WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
+        final String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
 
         Thread writeThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 Log.d("AfternewIOThreadRun", "Attempting to write string...");
-                writeioThread.write(("Hello from "+ android.os.Build.MODEL + "!").getBytes());
+                //writeioThread.write(("Hello from "+ android.os.Build.MODEL + "!").getBytes());
+                writeioThread.write((ip).getBytes());
 
             }
         });
