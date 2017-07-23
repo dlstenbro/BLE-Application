@@ -33,9 +33,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -78,7 +81,7 @@ public class PairedDevices extends DeviceScanActivity {
         acceptThread = new ServerThread();
 
         // create another thread for the object above, the wait for messages to come in from device.
-        Thread listenThread = new Thread(new Runnable() {
+        final Thread listenThread = new Thread(new Runnable() {
 
             public void run() {
                 acceptThread.run();
@@ -103,7 +106,7 @@ public class PairedDevices extends DeviceScanActivity {
                 }
 
                 // When the user hits the send and receive button, then listen for incoming strings.
-                if (button_name.getText().toString().contains("Send and Receive")) {
+                if (button_name.getText().toString().contains("Send/Receive IP")) {
                     sendReceiveIP = true;
 
                     final ClientThread newConnect = new ClientThread(device);
@@ -113,7 +116,6 @@ public class PairedDevices extends DeviceScanActivity {
                         public void run() {
                             Log.d("connectThread", "listening for strings....");
                             newConnect.run();
-                            //newConnect.start();
 
                         }
                     });
@@ -124,11 +126,16 @@ public class PairedDevices extends DeviceScanActivity {
                         Log.d("TextviewReceivedMessage", "updating Text view to say " + receivedMessage);
                         receivedText.append(" " + receivedMessage);
                         receivedText.invalidate();
+
+
+                        //newConnect.cancel();
+                        //acceptThread.cancel();
                     }
+
 
                 }
 
-                if((button_name.getText().toString().contains("File Browser")) && sendReceiveIP == true){
+                if(button_name.getText().toString().contains("File Browser")){
                     // do something
                     // go to next activity
                     // start wifi
@@ -136,8 +143,15 @@ public class PairedDevices extends DeviceScanActivity {
                     // create a on press listener for list view
                     // when the user selects the file, then download the file to root directory of device.
 
+                    Log.d("FileBrowserButton", "starting file browser... " + receivedMessage);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("ipAddress",String.valueOf(receivedMessage));
+                    Intent fileBrowserIntent = new Intent(PairedDevices.this, FileBrowser.class);
+                    fileBrowserIntent.putExtras(bundle);
+                    startActivity(fileBrowserIntent);
+
                 }
-                else{
+                else if (sendReceiveIP = false){
                     Toast.makeText(PairedDevices.this, "Send/Receive IP address first!", Toast.LENGTH_SHORT).show();
                 }
 
@@ -409,7 +423,6 @@ public class PairedDevices extends DeviceScanActivity {
             listener.start();
 
 
-
         }
 
         // Closes the client socket and causes the thread to finish.
@@ -426,8 +439,8 @@ public class PairedDevices extends DeviceScanActivity {
     private void writeThread(BluetoothSocket socket) {
 
         final IOThread writeioThread = new IOThread(socket);
-        WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
-        final String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
+
+        final String ip = getLocalIpAddress();
 
         Thread writeThread = new Thread(new Runnable() {
             @Override
@@ -439,6 +452,7 @@ public class PairedDevices extends DeviceScanActivity {
             }
         });
         writeThread.start();
+
 
     }
 
@@ -499,6 +513,7 @@ public class PairedDevices extends DeviceScanActivity {
 
         // Call this from the main activity to send data to the remote device.
         public void write(byte[] bytes) {
+
             try {
                 mmOutStream.write(bytes);
                 String sentMessage = new String(bytes, "UTF-8");
@@ -572,4 +587,62 @@ public class PairedDevices extends DeviceScanActivity {
 
     }
 
+    public static String getMacAddr() {
+        try {
+            List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface nif : all) {
+                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
+
+                byte[] macBytes = nif.getHardwareAddress();
+                if (macBytes == null) {
+                    return "";
+                }
+
+                StringBuilder res1 = new StringBuilder();
+                for (byte b : macBytes) {
+                    res1.append(Integer.toHexString(b & 0xFF) + ":");
+                }
+
+                if (res1.length() > 0) {
+                    res1.deleteCharAt(res1.length() - 1);
+                }
+                return res1.toString();
+            }
+        } catch (Exception ex) {
+        }
+        return "02:00:00:00:00:00";
+    }
+
+    public static String getMacAddr2() {
+        try {
+            List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface nif : all) {
+                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
+
+                byte[] macBytes = nif.getHardwareAddress();
+                if (macBytes == null) {
+                    return "";
+                }
+
+                StringBuilder res1 = new StringBuilder();
+                for (byte b : macBytes) {
+                    res1.append(String.format("%02X:",b));
+                }
+
+                if (res1.length() > 0) {
+                    res1.deleteCharAt(res1.length() - 1);
+                }
+                return res1.toString();
+            }
+        } catch (Exception ex) {
+        }
+        return "02:00:00:00:00:00";
+    }
+
+    // GETS THE IP ADDRESS OF YOUR PHONE'S NETWORK
+    private String getLocalIpAddress() {
+        WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
+        String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
+        return ip;
+    }
 }
